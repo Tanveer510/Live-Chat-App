@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@2.5.0/fonts/remixicon.css" rel="stylesheet">
+    <link rel="stylesheet" href="../stylesheets/chat.css">
+</head>
+<body>
+    <div id="back">
+        <div id="panel">
+            <div id="online">
+                <h3>Online Users</h3>
+                <hr>
+                <div id="onlinelist">
+
+                </div>
+            </div>
+            <div id="messagebar">
+                <div id="overlay">
+                    <div id="msgpanel">
+                        
+                    </div>
+                    <div>
+                        
+                        <form id="form">
+                            <textarea id="mssg" name="msg" placeholder="Type your message here."></textarea>
+                            <button id="btn">
+                                
+                                <i class="ri-send-plane-fill"></i>
+                                
+                            </button>
+                        </form>
+                        
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qs/6.9.2/qs.min.js"
+        integrity="sha512-f0AM6x08kthGzMyDHZjBgjBCPp8V8ovlHYCI1jMkhViTeX3MykGCf/DnN1khWss/6d1105eAG4TniSKy6UhZrw=="
+        crossorigin="anonymous"></script>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.1.0/socket.io.min.js"
+        integrity="sha512-ZqQWGugamKhlSUqM1d/HMtwNG+hITmd/ptoof91lt5ojFZ+2bKlkvlzkmnDIrnikDY+UDVZVupLf6MNbuhtFSw=="
+        crossorigin="anonymous"></script>
+
+    <script>
+
+        //Getting the values from the query
+        let username = Qs.parse(location.search,{
+            ignoreQueryPrefix: true
+        });
+
+        let onlineUsersDiv = document.querySelector("#onlinelist");
+        
+        
+         var socket = io();
+        let chatdiv = document.querySelector("#msgpanel");
+
+            socket.on('message', (data) => {
+               printMSg(data.user,data.text);
+
+                //Scroll Down
+                chatdiv.scrollTop = chatdiv.scrollHeight;
+
+            });
+
+
+        let ff = document.querySelector("form");
+        
+        ff.addEventListener("submit",(e)=>{
+            e.preventDefault();
+            
+            let msg = e.target.elements.mssg.value;
+            
+            socket.emit("chatMsg",msg);
+
+            //Clearing the input
+            e.target.elements.mssg.value = "";
+            e.target.elements.mssg.focus();
+
+        })
+
+        function printMSg(user,msgtoshow){
+            let divmsg = document.createElement("div");
+            divmsg.classList.add("msg");
+
+            divmsg.innerHTML = `${user}>> ${msgtoshow}`;
+
+            let msgpanel = document.getElementById("msgpanel")
+            msgpanel.appendChild(divmsg);
+        }
+
+        //Sending the username of the Live User
+        socket.emit("joinedUser",username.username);
+    
+        //Accepting the liveUsersArray
+        socket.on("liveUserArray",(liveArr)=>{
+                onlineUsersDiv.innerHTML = "";
+            // liveArr.forEach(element => {
+            //     onlineUser.innerHTML = `${element.username}`;
+            //     onlineUsersDiv.appendChild(onlineUser);
+            // });
+            for(let x=0;x<liveArr.length;x++){
+
+                let onlineUser = document.createElement("div");
+                onlineUser.classList.add("user");
+                onlineUser.innerHTML = `${liveArr[x].username}`;
+                console.log(liveArr[x]);
+                onlineUsersDiv.appendChild(onlineUser);
+            }        
+        })
+
+    </script>
+
+</body>
+</html>
